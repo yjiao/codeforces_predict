@@ -87,10 +87,11 @@ def get_training_data(submissions, user_rating, max_time_elapsed):
     return data
 
 # params
-filename = 'trainint_linear_regression_last.csv'
+filename = 'training_linear_regression_last.csv'
 maxtime = 30 * 24 * 3600 # number of seconds in a month
 lastidx = 0
 
+print "Getting last contests for all users..."
 q = """
 SELECT *
 FROM
@@ -101,6 +102,7 @@ FROM
     )a
 """
 last_contests = pd.read_sql(q, con)
+print "done"
 
 time_back = 3600*5 # 5 hrs
 
@@ -115,6 +117,7 @@ for k, series_usrrate in last_contests.iterrows():
         con)
 
     if series_usrrate.contestid not in valid_contests:
+	print series_usrrate.contestid, valid_contests
 	continue
 
     data = get_training_data(df_usrsub, series_usrrate, maxtime)

@@ -3,4 +3,5 @@
 *.txt
 *.tsv
 *.pyc
+*.pickle
 .ipynb_checkpoints/*

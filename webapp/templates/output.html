@@ -40,7 +40,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project name</a>
+          <a class="navbar-brand" href="#">{{title}}</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -57,9 +57,7 @@
     <!---------------------- HEADER ---------------------->
    <div class="container">
     <div class="starter-template">
-      <h2>{{handle}}</h2>
-    </div>
-
+      <h2>{{handle}}: {{delta}}</h2>
 
 
     <!---------------------- QUERY RESULTS ---------------------->
@@ -71,34 +69,40 @@
       <div class="starter-template">
 
       <!---------------------- GRAPH ---------------------->
-			{% for id in ids %}
-					<div id="{{id}}"></div>
-			{% endfor %}
 
-        <h3>Suggested problems</h3>
+      </div>
+
+      <div class="right">
+        <h3>Activity History</h3>
+        <div id="{{ids[0]}}"></div>
+
+        <h3>Model Predictions</h3>
+        <div id="{{ids[1]}}"></div>
       </div>
 
 
-
+        <h3>Suggested problems</h3>
       <table class="table table-hover">
       <tr>
-        {% for k in keys %}
-        <th>{{k}}</th>
-      {% endfor %}
+      <th>Problem Difficulty</th>
+      <th>Problem</th>
+      <th>Contest</th>
+      <th>Division</th>
+      <th>Points</th>
       </tr>
-      {% for rating in rating_history %}
-      <tr><td>{{ rating['ratingupdatetimeseconds'] }}</td><td>{{ rating['oldrating']}}</td><td> {{ rating['newrating'] }}</td></tr>
+      {% for problem in problems  %}
+      <tr>
+        <td>{{ problem['problemrating'] }}</td>
+        <td><a href=http://codeforces.com/contest/{{problem['contestid']}}/problem/{{problem['problemid']}}>{{ problem['name'] }}</a></td>
+        <td>{{ problem['contestname'] }}</td>
+        <td>{{ problem['division'] }}</td>
+        <td>{{ problem['points'] }}</td>
+      </tr>
       {% endfor %}
       </table>
 
 
      </div><!-- /.container -->
-
-    <div class="container">
-      <div class="starter-template">
-        <h3>Another Result:</h3>
-        <p class="lead">Now we've taken the input and called a function from your package.<br>The result is {{the_result}}</p>
-      </div>
 
 
       <!--------------- BUTTONS ------------------>
@@ -106,13 +110,15 @@
 
       <form  action="/output" method="GET">
         <div class="form-group">
-          <label for="handle">Codeforces handle:</label>
+          <label for="handle">Change Codeforces handle:</label>
           <input type="text" id="handle" name='handle' placeholder="Limak the bear">
         </div>
 
+<!--
         <div>
           <button type="submit" class="btn btn-default btn-lg">Generate my profile</button>
         </div>
+-->
 
       </form>
     </div>

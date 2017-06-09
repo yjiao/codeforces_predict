@@ -1,16 +1,13 @@
 from flask import render_template
 from webapp import app
 
-import json
-import plotly
-
 import numpy as np
 import pandas as pd
 
 import psycopg2
 from flask import request
 from a_Model import ModelIt
-from ui_functions import smooth_ratings
+from ui_functions import *
 
 user = 'Joy' #add your username here (same as previous postgreSQL)            
 host = 'localhost'
@@ -36,7 +33,6 @@ def birth_page():
                 """
     df = pd.read_sql_query(sql_query,con)
     rating_history = ""
-    print df[:10]
     for i in range(0,10):
         rating_history += df.iloc[i]['handle']
         rating_history += "<br>"
@@ -70,16 +66,11 @@ def genprofile_output():
     #query = "SELECT %s, %s, %s FROM user_rating WHERE handle='%s'" % (q1, q2, q3, handle)
     query = "SELECT * FROM user_rating WHERE handle='%s'" % handle
 
-    df = pd.read_sql_query(query,con)
-    df.sort_values(q1, inplace=True)
-    df[q1] = pd.to_datetime(df[q1], unit='s')
-    print df.info()
-    smoothed = smooth_ratings(df)
+    user_rating = pd.read_sql_query(query,con)
+    user_rating.sort_values(q1, inplace=True)
+    user_rating[q1] = pd.to_datetime(user_rating[q1], unit='s')
 
-    rating_history = df.to_dict(orient='records')
-
-    the_result = ''
-    the_result = ModelIt(handle,rating_history)
+    rating_history = user_rating.to_dict(orient='records')
 
     query = """
         SELECT 
@@ -97,92 +88,53 @@ def genprofile_output():
                     submissions.problemid = problem_rating.problemid
                     AND
                     submissions.handle = '%s'
+                    AND
+                    submissions.verdict = 'OK'
             INNER JOIN problem_info
                 ON 
                     problem_info.contestid = problem_rating.contestid
                     AND
                     problem_info.problemid = problem_rating.problemid
         """ % handle
-    problems = pd.read_sql_query(query,con)
-    problems['starttimeseconds'] = pd.to_datetime(problems['starttimeseconds'], unit='s')
-
-    problem_annotation = problems.contestname.str.cat(problems.problemid, sep=' ')
+    problem_rating = pd.read_sql_query(query,con)
+    problem_rating['starttimeseconds'] = pd.to_datetime(problem_rating['starttimeseconds'], unit='s')
 
     # -----------------------------------------------------------------------------
-    graphs = [
-        dict(
-            data=[
-                dict(
-                    x=problems['starttimeseconds'],
-                    y=problems['problemrating'],
-                    mode='markers',
-                    text=problem_annotation,
-                    marker=dict(
-                        color='rgba(231, 76, 60, .5)',
-                        size=5,
-                        ),
-                    type='scatter',
-                    name="problems solved"
-                ),
-                dict(
-                    x=df[q1],
-                    y=df[q3],
-                    mode='markers',
-                    text=df.contestname,
-                    marker=dict(
-                        color='rgba((52, 152, 219, .5)',
-                        size=10,
-                        ),
-                    type='scatter',
-                    name="contest performance"
-                ),
-                dict(
-                    x=df[q1],
-                    y=smoothed,
-                    type='line',
-                    line=dict(
-                        color='rgb(0,0,0)',
-                        size=10
-                        ),
-                    name="smoothed user rating",
-                ),
-            ],
-            layout=dict(
-                #title='User Rating',
-                yaxis=dict(
-                    range=[min(1000, min(df.newrating)-100), max(2000, max(problems.problemrating)+100)]
-                ),
-                plot_bgcolor='rgb(255,255,255)',
-                paper_bgcolor='rgb(255,255,255)',
-		margin=dict(
-			l=50,
-			r=50,
-			b=100,
-			t=0,
-			pad=0
-		    ),
-            )
-        )
-    ]
-
-    # Add "ids" to each of the graphs to pass up to the client
-    # for templating
-    ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
-
-    # Convert the figures to JSON
-    # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
-    # objects to their JSON equivalents
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+    # PROBLEM SUGGESTIONS
+    problem_thresh = float(user_rating.newrating.values[-1]) + 300
+    problem_inc = 300
+    print problem_thresh, "-------------------------------"
+    problem_suggest_dict = filter_problems(problem_thresh, problem_inc)
 
     # -----------------------------------------------------------------------------
+    # MODEL PREDICTION
+    with open('models/qbins.txt') as f:
+        qbins = np.array(map(float, f.readline().split(',')))
+    qbins = [round(q, 2) for q in qbins]
 
+    query = """
+        SELECT * FROM train_ols_last WHERE handle='%s'
+        """ % handle
+    ols_x = pd.read_sql_query(query,con)
+
+    model, delta = predict(ols_x, qbins)
+    print delta, "------------------------------------"
+    if delta > 0:
+        delta_str = '+'
+    if delta < 0:
+        delta_str = ''
+    delta_str += str(round(delta, 1))
+
+    # -----------------------------------------------------------------------------
+    # Generate plot
+    ids, graphJSON = plot_user_rating(user_rating, problem_rating, delta, model)
 
     return render_template("output.html",
+            title=title,
             handle = handle,
-            keys = [q1, q2, q3],
-            rating_history = rating_history[0:10],
-            the_result = the_result,
+            problems = problem_suggest_dict,
             ids=ids,
             graphJSON=graphJSON,
-            title=title
+            delta=delta_str
             )
+
