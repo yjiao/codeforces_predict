@@ -196,6 +196,10 @@ def plot_user_rating(user_rating, problems, delta, model):
 def predict(x, qbins):
     xbin = round(x['bin'].values[0], 2)
     bin_idx = qbins.index(xbin)
+    if bin_idx == 20:
+        bin_idx = 19
+    print x
+    print qbins, xbin
     
     model_file = "models/ols%d.pickle" % bin_idx
     print "USING MODEL", model_file, "----------------------------"
