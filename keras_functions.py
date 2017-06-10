@@ -95,34 +95,35 @@ def get_user_data(user, binvars, month, maxtimepts):
     ylist = []
     
     for k, v in groups:
-        print k
         v.is_copy = False
         
-        #v.drop('contestid', axis=1, inplace=True)
+        v.drop('contestid', axis=1, inplace=True)
         y = v.loc[:, y_column].values[0]
         v.drop(y_column, inplace=True, axis=1)
         
-        #trainlist.append(np.array(v))
-        trainlist.append(v)
+        trainlist.append(np.array(v))
+        #trainlist.append(v)
         ylist.append(y)
-    return trainlist
 
     ary = np.array(ylist)
 
     # -----------------------------
     # Pad X values
     # TODO: need to make this "universal" across all users
+
+    n_features = trainlist[0].shape[1]
+    maxtimepts_actual = max(map(len, trainlist))
+
     size = trainlist[0].shape[1]
     for i in range(len(trainlist)):
         gap = maxtimepts - len(trainlist[i])
         zeros = np.zeros((gap, size))
         trainlist[i] = np.concatenate([zeros, trainlist[i]], axis=0)
-        print trainlist[i].shape
 
     arx = np.concatenate(trainlist, axis=0)
-    arx = np.reshape(arx, (len(trainlist), maxtimepts, 111))
+    arx = np.reshape(arx, (len(trainlist), maxtimepts, n_features))
     
-    return arx, ary
+    return arx, ary, maxtimepts_actual 
 
 def create_model(layer1, layer2, batch_input_shape, maxtimepts):
     model = Sequential()
