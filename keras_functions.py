@@ -10,6 +10,7 @@ from keras.layers import Dense, Dropout
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.layers import GRU
+from keras.layers.core import Masking
 
 # feature scaling has been removed from this version--we can't
 # scale each sample by itself, every sample must be done together
@@ -24,10 +25,14 @@ def get_categorical_variables( colnames ):
 
     return catvars
 
-def get_user_data(user, binvars, month, maxtimepts):
+def get_user_data(user, binvars, month, maxtimepts, columns):
+    y_column = 'delta_smoothed_%dmonths' % month
+
     # -----------------------------
     # Load data
     data = pd.read_csv('rnn_train/%s.csv'%user)
+    data = data[columns]
+    print data.problem_rating
 
     # ABORT if file is empty
     if data.shape[0] == 0:
@@ -51,6 +56,7 @@ def get_user_data(user, binvars, month, maxtimepts):
 
     data.loc[idx1, 'ratingupdatetimeseconds'] = data.loc[idx2, 'ratingupdatetimeseconds']
     data.loc[idx1, 'contestid'] = data.loc[idx2, 'contestid']
+    data.loc[idx1, y_column] = data.loc[idx2, y_column]
 
     # -----------------------------
     # binarize some variables
@@ -76,7 +82,6 @@ def get_user_data(user, binvars, month, maxtimepts):
     # -----------------------------
     # Group by contest
     groups = df_train.groupby('contestid')
-    y_column = 'delta_smoothed_%dmonths' % month
 
     # -----------------------------
     # Get the differences in times of interest
@@ -105,12 +110,14 @@ def get_user_data(user, binvars, month, maxtimepts):
     df_train.drop("solvetimeseconds", axis=1, inplace=True)
     df_train.drop("starttimeseconds", axis=1, inplace=True)
     df_train.drop("stoptimeseconds",  axis=1, inplace=True)
+    df_train.drop("newrating",  axis=1, inplace=True)
+    df_train.drop("oldrating",  axis=1, inplace=True)
 
     # -----------------------------
     # create list of inputs for training
     trainlist = []
     ylist = []
-    colnames = df_train.columns.values
+    colnames = [d for d in df_train.columns.values if d != 'contestid' and d != y_column]
     
     for k, v in groups:
         v.is_copy = False
@@ -118,6 +125,9 @@ def get_user_data(user, binvars, month, maxtimepts):
         v.drop('contestid', axis=1, inplace=True)
         y = v.loc[:, y_column].values[0]
         v.drop(y_column, inplace=True, axis=1)
+
+        print list(v.columns.values).index('problem_rating')
+        print v.problem_rating
         
         trainlist.append(np.array(v))
         #trainlist.append(v)
@@ -127,8 +137,6 @@ def get_user_data(user, binvars, month, maxtimepts):
 
     # -----------------------------
     # Pad X values
-    # TODO: need to make this "universal" across all users
-
     n_features = trainlist[0].shape[1]
     maxtimepts_actual = max(map(len, trainlist))
 
@@ -143,7 +151,7 @@ def get_user_data(user, binvars, month, maxtimepts):
     
     return arx, ary, maxtimepts_actual, colnames 
 
-def create_model(n_neurons batch_input_shape):
+def create_model(n_neurons, batch_input_shape):
     model = Sequential()
 
     model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
@@ -152,10 +160,6 @@ def create_model(n_neurons batch_input_shape):
     model.add(Dropout(0.5))
 
     model.add(GRU(n_neurons[1], return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
-    model.add(Dropout(0.5))
-
-    model.add(Dense(n_neurons[2], activation='tanh'))
-    model.add(Dropout(0.5))
 
     model.add(Dense(1, activation='tanh'))
     return model
