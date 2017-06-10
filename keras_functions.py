@@ -30,9 +30,18 @@ def get_user_data(user, binvars, month, maxtimepts):
     data = pd.read_csv('rnn_train/%s.csv'%user)
 
     # drop the first contest--we don't have a "real" change from a null expectation here
+    # assign all activity to the second contest
     data.sort_values('ratingupdatetimeseconds', inplace=True)
-    firstcid = data.contestid.values[0]
-    data.drop(data.index[data.contestid == firstcid], axis=0, inplace=True)
+    cids = list(set(data.contestid.values))
+    cids.sort()
+    cid1 = cids[0]
+    cid2 = cids[1]
+
+    idx1 = data.index[data.contestid == cid1]
+    idx2 = data.index[data.contestid == cid2][0]
+
+    data.loc[idx1, 'ratingupdatetimeseconds'] = data.loc[idx2, 'ratingupdatetimeseconds']
+    data.loc[idx1, 'contestid'] = data.loc[idx2, 'contestid']
 
     # -----------------------------
     # binarize some variables
@@ -57,8 +66,28 @@ def get_user_data(user, binvars, month, maxtimepts):
 
     # -----------------------------
     # Group by contest
-    df_train_scaled['contestid'] = cids
-    groups = df_train_scaled.groupby('contestid')
+    groups = df_train.groupby('contestid')
+    y_column = 'delta_smoothed_%dmonths' % month
+
+    # -----------------------------
+    # Get the differences in times of interest
+    # Otherwise normalization would make them too small to be meaningful
+
+    # current quantities
+    # ratingupdatetimeseconds    time at end of a contest
+    # solvetimeseconds           time at first solve
+    # starttimeseconds           time of first submit
+    # stoptimeseconds            time of last submit
+
+    # quantities of interest
+    # hours_solve_to_contest      hours between solve and end of contest
+    # hours_submit_to_solve       hours between first submit and solve
+    df_train['hours_solve_to_contest'] = (df_train['ratingupdatetimeseconds'] - df_train['solvetimeseconds']) / 3600.0
+    df_train['hours_submit_to_solve'] = (df_train['solvetimeseconds'] - df_train['starttimeseconds']) / 3600.0
+    df_train.drop("ratingupdatetimeseconds", axis=1, inplace=True)
+    df_train.drop("solvetimeseconds", axis=1, inplace=True)
+    df_train.drop("starttimeseconds", axis=1, inplace=True)
+    df_train.drop("stoptimeseconds",  axis=1, inplace=True)
 
     # -----------------------------
     # create list of inputs for training
@@ -69,10 +98,11 @@ def get_user_data(user, binvars, month, maxtimepts):
         print k
         v.is_copy = False
         
-        v.drop('contestid', axis=1, inplace=True)
+        #v.drop('contestid', axis=1, inplace=True)
         y = v.loc[:, y_column].values[0]
-        #v.drop(y_column, inplace=True, axis=1)
+        v.drop(y_column, inplace=True, axis=1)
         
+        #trainlist.append(np.array(v))
         trainlist.append(v)
         ylist.append(y)
     return trainlist
@@ -83,24 +113,15 @@ def get_user_data(user, binvars, month, maxtimepts):
     # Pad X values
     # TODO: need to make this "universal" across all users
     size = trainlist[0].shape[1]
-
     for i in range(len(trainlist)):
         gap = maxtimepts - len(trainlist[i])
         zeros = np.zeros((gap, size))
         trainlist[i] = np.concatenate([zeros, trainlist[i]], axis=0)
+        print trainlist[i].shape
+
     arx = np.concatenate(trainlist, axis=0)
-
-#        trainlist[i]
-##        for j in range(gap):
-##            nullrow = [0] * size
-##            trainlist[i].loc[-j-1] = nullrow
-#        trainlist[i].sort_index(inplace = True)
-
-#    dfx = pd.concat(trainlist)
-#    dfx.reset_index(inplace=True, drop=True)
-#
-#    arx = np.array(dfx)
     arx = np.reshape(arx, (len(trainlist), maxtimepts, 111))
+    
     return arx, ary
 
 def create_model(layer1, layer2, batch_input_shape, maxtimepts):

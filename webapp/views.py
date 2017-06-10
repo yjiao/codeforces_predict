@@ -119,11 +119,14 @@ def genprofile_output():
 
     model, delta = predict(ols_x, qbins)
     print delta, "------------------------------------"
-    if delta > 0:
-        delta_str = '+'
-    if delta < 0:
-        delta_str = ''
-    delta_str += str(round(delta, 1))
+    if model is None:
+        delta_str = "Unknown"
+    else:
+        if delta > 0:
+            delta_str = '+'
+        if delta < 0:
+            delta_str = ''
+        delta_str += str(round(delta, 1))
 
     # -----------------------------------------------------------------------------
     # Generate plot

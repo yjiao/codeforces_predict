@@ -30,13 +30,16 @@ def smooth_ratings(df):
 def plot_user_rating(user_rating, problems, delta, model):
     now = pd.to_datetime(datetime.date.today())
 
-    smoothed = smooth_ratings(user_rating)
+    try:
+        smoothed = smooth_ratings(user_rating)
+    except:
+        smoothed = None
     problem_annotation = problems.contestname.str.cat(problems.problemid, sep=' ')
 
     # predictions
     x_pred =[now]
     last_rating = user_rating.newrating.values[-1]
-    y_pred =[last_rating + delta]
+    #y_pred =[last_rating + delta]
 
     # for drawing squares
     x0 = min(problems.starttimeseconds)
@@ -73,23 +76,26 @@ def plot_user_rating(user_rating, problems, delta, model):
         ]
 
     # -----------------------------------------------------------------------------
-    trace_model = dict(
-        y=['Mean of (problem difficulty) - (user level)',
-            '#problems where (problem difficulty) > (user level)',
-            '# wrong tries/ problem',
-            'Std of (problem difficulty) - (user level)',
-            '#contests in this period',
-            'Your current (smoothed) rating',
-            'Previous change'],
-        x=model.params,
-        marker=dict(
-            color='rgba(231, 76, 60, 1)',
-            size=5,
-            ),
-        type='bar',
-        name="Model parameters",
-        orientation = 'h'
-    )
+    if model is not None:
+        trace_model = dict(
+            y=['Mean of (problem difficulty) - (user level)',
+                '#problems where (problem difficulty) > (user level)',
+                '# wrong tries/ problem',
+                'Std of (problem difficulty) - (user level)',
+                '#contests in this period',
+                'Your current (smoothed) rating',
+                'Previous change'],
+            x=model.params,
+            marker=dict(
+                color='rgba(231, 76, 60, 1)',
+                size=5,
+                ),
+            type='bar',
+            name="Model parameters",
+            orientation = 'h'
+        )
+    else:
+        trace_model = None
 
     trace_problemssolved = dict(
         x=problems['starttimeseconds'],
@@ -117,74 +123,96 @@ def plot_user_rating(user_rating, problems, delta, model):
         name="contest performance"
     )
 
-    trace_smooth = dict(
-        x=user_rating.ratingupdatetimeseconds,
-        y=smoothed,
-        type='line',
-        line=dict(
-            color='rgb(0,0,0)',
-            size=10
-            ),
-        name="smoothed user rating",
-    )
-
-    trace_prediction = dict(
-        x=x_pred,
-        y=y_pred,
-        marker=dict(
-            color='rgba(0, 0, 0, 1)',
-            size=10,
-            ),
-        mode='markers',
-        type='scatter',
-        name="prediction"
-    )
-
-    # -----------------------------------------------------------------------------
-    model_plot = dict(
-        data=[trace_model],
-        layout=dict(
-            autosize = "False",
-            height=200,
-            plot_bgcolor='rgb(255,255,255)',
-            paper_bgcolor='rgb(255,255,255)',
-            margin=dict(
-                    l=350,
-                    r=200,
-                    b=50,
-                    t=0,
-                    pad=0
-                )
-            )
-    )
-
-    rating_plot = dict(
-        data=[ trace_problemssolved, trace_userrating, trace_smooth, trace_prediction ],
-        layout=dict(
-            yaxis=dict(
-                range=[min(1000, min(user_rating.newrating)-100), max(2000, max(problems.problemrating)+100)]
-            ),
-            autosize = "False",
-            plot_bgcolor='rgb(255,255,255)',
-            paper_bgcolor='rgb(255,255,255)',
-            margin=dict(
-                    l=50,
-                    r=50,
-                    b=50,
-                    t=0,
-                    pad=0
+    if smoothed is not None:
+        trace_smooth = dict(
+            x=user_rating.ratingupdatetimeseconds,
+            y=smoothed,
+            type='line',
+            line=dict(
+                color='rgb(0,0,0)',
+                size=10
                 ),
-            shapes=shapes,
-            hovermode='closest'
+            name="smoothed user rating",
         )
-    )
+        rating_plot = dict(
+            data=[ trace_problemssolved, trace_userrating, trace_smooth ],
+            layout=dict(
+                yaxis=dict(
+                    range=[min(1000, min(user_rating.newrating)-100), max(2000, max(problems.problemrating)+100)]
+                ),
+                autosize = "False",
+                plot_bgcolor='rgb(255,255,255)',
+                paper_bgcolor='rgb(255,255,255)',
+                margin=dict(
+                        l=50,
+                        r=50,
+                        b=50,
+                        t=0,
+                        pad=0
+                    ),
+                shapes=shapes,
+                hovermode='closest'
+            )
+        )
+    else:
+        rating_plot = dict(
+            data=[ trace_problemssolved, trace_userrating ],
+            layout=dict(
+                yaxis=dict(
+                    range=[min(1000, min(user_rating.newrating)-100), max(2000, max(problems.problemrating)+100)]
+                ),
+                autosize = "False",
+                plot_bgcolor='rgb(255,255,255)',
+                paper_bgcolor='rgb(255,255,255)',
+                margin=dict(
+                        l=50,
+                        r=50,
+                        b=50,
+                        t=0,
+                        pad=0
+                    ),
+                shapes=shapes,
+                hovermode='closest'
+            )
+        )
+
+#    trace_prediction = dict(
+#        x=x_pred,
+#        y=y_pred,
+#        marker=dict(
+#            color='rgba(0, 0, 0, 1)',
+#            size=10,
+#            ),
+#        mode='markers',
+#        type='scatter',
+#        name="prediction"
+#    )
+
+    # -----------------------------------------------------------------------------
+    if trace_model is not None:
+        model_plot = dict(
+            data=[trace_model],
+            layout=dict(
+                autosize = "False",
+                height=200,
+                plot_bgcolor='rgb(255,255,255)',
+                paper_bgcolor='rgb(255,255,255)',
+                margin=dict(
+                        l=350,
+                        r=200,
+                        b=50,
+                        t=0,
+                        pad=0
+                    )
+                )
+        )
+    else:
+        model_plot = None
+
 
 
     # -----------------------------------------------------------------------------
-    graphs = [
-        rating_plot,
-        model_plot
-    ]
+    graphs = [p for p in [rating_plot, model_plot] if p is not None]
 
     # Add "ids" to each of the graphs to pass up to the client for templating
     ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
@@ -194,27 +222,30 @@ def plot_user_rating(user_rating, problems, delta, model):
 
 
 def predict(x, qbins):
-    xbin = round(x['bin'].values[0], 2)
-    bin_idx = qbins.index(xbin)
-    if bin_idx == 20:
-        bin_idx = 19
-    print x
-    print qbins, xbin
-    
-    model_file = "models/ols%d.pickle" % bin_idx
-    print "USING MODEL", model_file, "----------------------------"
-    model = sm.load(model_file)
+    try:
+        xbin = round(x['bin'].values[0], 2)
+        bin_idx = qbins.index(xbin)
+        if bin_idx == 20:
+            bin_idx = 19
+        print x
+        print qbins, xbin
+        
+        model_file = "models/ols%d.pickle" % bin_idx
+        print "USING MODEL", model_file, "----------------------------"
+        model = sm.load(model_file)
 
-    cols = ['rating_diff_mean',
-            'n_harder',
-            'n_wrong_mean',
-            'rating_diff_std',
-            'n_contest',
-            'smoothed_3months',
-            'prev']
+        cols = ['rating_diff_mean',
+                'n_harder',
+                'n_wrong_mean',
+                'rating_diff_std',
+                'n_contest',
+                'smoothed_3months',
+                'prev']
 
-    future_val = model.predict(x[cols])[0]
-    return model, future_val
+        future_val = model.predict(x[cols])[0]
+        return model, future_val
+    except:
+        return None, None
 
 def filter_problems(problem_thresh, problem_inc):
     query = """
