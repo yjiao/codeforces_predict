@@ -143,15 +143,19 @@ def get_user_data(user, binvars, month, maxtimepts):
     
     return arx, ary, maxtimepts_actual, colnames 
 
-def create_model(layer1, layer2, batch_input_shape):
+def create_model(n_neurons batch_input_shape):
     model = Sequential()
+
     model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
-    model.add(GRU(layer1, return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
+
+    model.add(GRU(n_neurons[0], return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
     model.add(Dropout(0.5))
-    model.add(GRU(layer2, return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
+
+    model.add(GRU(n_neurons[1], return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
     model.add(Dropout(0.5))
-    model.add(Dense(50, activation='tanh'))
+
+    model.add(Dense(n_neurons[2], activation='tanh'))
     model.add(Dropout(0.5))
-    # we use a linear activation for the output
+
     model.add(Dense(1, activation='tanh'))
     return model
