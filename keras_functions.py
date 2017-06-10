@@ -11,6 +11,9 @@ from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.layers import GRU
 
+# feature scaling has been removed from this version--we can't
+# scale each sample by itself, every sample must be done together
+
 def get_categorical_variables( colnames ):
     con = psycopg2.connect(database='codeforces', user='Joy')
     cur = con.cursor()
@@ -22,9 +25,6 @@ def get_categorical_variables( colnames ):
     return catvars
 
 def get_user_data(user, binvars, month, maxtimepts):
-    # set some parameters for normalization
-    max_change = 200.0
-    
     # -----------------------------
     # Load data
     data = pd.read_csv('rnn_train/%s.csv'%user)
@@ -56,25 +56,6 @@ def get_user_data(user, binvars, month, maxtimepts):
     df_train.fillna(value=0, inplace=True)
 
     # -----------------------------
-    # Feature scaling
-    y_column = 'delta_smoothed_%dmonths' % month
-    colnames = list(df_train.columns.values)
-
-    cids = df_train.contestid.values
-
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    df_train_scaled = scaler.fit_transform(df_train)
-    df_train_scaled = pd.DataFrame(df_train_scaled)
-    df_train_scaled.columns = colnames
-
-    # add back in colnames that should not be scaled
-    df_train_scaled['contestid'] = cids
-    
-    # scale the y column wrt to max change possible
-    df_train_scaled[y_column] = df_train[y_column]
-    df_train_scaled[y_column] /= max_change
-
-    # -----------------------------
     # Group by contest
     df_train_scaled['contestid'] = cids
     groups = df_train_scaled.groupby('contestid')
@@ -83,16 +64,18 @@ def get_user_data(user, binvars, month, maxtimepts):
     # create list of inputs for training
     trainlist = []
     ylist = []
-
+    
     for k, v in groups:
+        print k
         v.is_copy = False
         
         v.drop('contestid', axis=1, inplace=True)
         y = v.loc[:, y_column].values[0]
-        v.drop(y_column, inplace=True, axis=1)
+        #v.drop(y_column, inplace=True, axis=1)
         
-        trainlist.append(np.array(v))
+        trainlist.append(v)
         ylist.append(y)
+    return trainlist
 
     ary = np.array(ylist)
 
