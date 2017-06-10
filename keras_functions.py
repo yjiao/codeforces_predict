@@ -29,10 +29,19 @@ def get_user_data(user, binvars, month, maxtimepts):
     # Load data
     data = pd.read_csv('rnn_train/%s.csv'%user)
 
+    # ABORT if file is empty
+    if data.shape[0] == 0:
+        return None, None, None, None
+
     # drop the first contest--we don't have a "real" change from a null expectation here
     # assign all activity to the second contest
     data.sort_values('ratingupdatetimeseconds', inplace=True)
     cids = list(set(data.contestid.values))
+    
+    # ABORT if only one contest
+    if len(cids) == 1:
+        return None, None, None, None
+
     cids.sort()
     cid1 = cids[0]
     cid2 = cids[1]
@@ -81,9 +90,17 @@ def get_user_data(user, binvars, month, maxtimepts):
 
     # quantities of interest
     # hours_solve_to_contest      hours between solve and end of contest
+    # hours_submit_to_contest     hours between first submit and end of contest
     # hours_submit_to_solve       hours between first submit and solve
     df_train['hours_solve_to_contest'] = (df_train['ratingupdatetimeseconds'] - df_train['solvetimeseconds']) / 3600.0
+    df_train['hours_submit_to_contest'] = (df_train['ratingupdatetimeseconds'] - df_train['starttimeseconds']) / 3600.0
     df_train['hours_submit_to_solve'] = (df_train['solvetimeseconds'] - df_train['starttimeseconds']) / 3600.0
+
+    # some problems were never solved. In this case hours_submit_to_solve is set to -1
+    idx_neversolved = df_train['solvetimeseconds'] < 0
+    df_train.loc[idx_neversolved, 'hours_solve_to_contest'] = -1
+    df_train.loc[idx_neversolved, 'hours_submit_to_solve'] = -1
+
     df_train.drop("ratingupdatetimeseconds", axis=1, inplace=True)
     df_train.drop("solvetimeseconds", axis=1, inplace=True)
     df_train.drop("starttimeseconds", axis=1, inplace=True)
@@ -93,6 +110,7 @@ def get_user_data(user, binvars, month, maxtimepts):
     # create list of inputs for training
     trainlist = []
     ylist = []
+    colnames = df_train.columns.values
     
     for k, v in groups:
         v.is_copy = False
@@ -118,20 +136,22 @@ def get_user_data(user, binvars, month, maxtimepts):
     for i in range(len(trainlist)):
         gap = maxtimepts - len(trainlist[i])
         zeros = np.zeros((gap, size))
-        trainlist[i] = np.concatenate([zeros, trainlist[i]], axis=0)
+        trainlist[i] = np.concatenate([trainlist[i], zeros], axis=0)
 
     arx = np.concatenate(trainlist, axis=0)
     arx = np.reshape(arx, (len(trainlist), maxtimepts, n_features))
     
-    return arx, ary, maxtimepts_actual 
+    return arx, ary, maxtimepts_actual, colnames 
 
-def create_model(layer1, layer2, batch_input_shape, maxtimepts):
+def create_model(layer1, layer2, batch_input_shape):
     model = Sequential()
-    batch_input_shape = (batch_input_shape[0], maxtimepts, size)
-    model.add(LSTM(layer1, return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
+    model.add(GRU(layer1, return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
     model.add(Dropout(0.5))
-    model.add(LSTM(layer2, return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(GRU(layer2, return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(Dropout(0.5))
+    model.add(Dense(50, activation='tanh'))
     model.add(Dropout(0.5))
     # we use a linear activation for the output
-    model.add(Dense(1, activation='linear'))
+    model.add(Dense(1, activation='tanh'))
     return model
