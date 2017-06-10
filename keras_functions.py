@@ -60,7 +60,7 @@ def get_user_data(user, binvars, month, maxtimepts):
     y_column = 'delta_smoothed_%dmonths' % month
     colnames = list(df_train.columns.values)
 
-    cids = df_train.contestid
+    cids = df_train.contestid.values
 
     scaler = MinMaxScaler(feature_range=(0, 1))
     df_train_scaled = scaler.fit_transform(df_train)
@@ -69,13 +69,14 @@ def get_user_data(user, binvars, month, maxtimepts):
 
     # add back in colnames that should not be scaled
     df_train_scaled['contestid'] = cids
-    df_train_scaled[y_column] = df_train[y_column]
     
     # scale the y column wrt to max change possible
+    df_train_scaled[y_column] = df_train[y_column]
     df_train_scaled[y_column] /= max_change
 
     # -----------------------------
     # Group by contest
+    df_train_scaled['contestid'] = cids
     groups = df_train_scaled.groupby('contestid')
 
     # -----------------------------
@@ -90,7 +91,7 @@ def get_user_data(user, binvars, month, maxtimepts):
         y = v.loc[:, y_column].values[0]
         v.drop(y_column, inplace=True, axis=1)
         
-        trainlist.append(v)
+        trainlist.append(np.array(v))
         ylist.append(y)
 
     ary = np.array(ylist)
@@ -98,20 +99,24 @@ def get_user_data(user, binvars, month, maxtimepts):
     # -----------------------------
     # Pad X values
     # TODO: need to make this "universal" across all users
-    #maxtimepts = max([len(t) for t in trainlist])
     size = trainlist[0].shape[1]
 
     for i in range(len(trainlist)):
         gap = maxtimepts - len(trainlist[i])
-        for j in range(gap):
-            nullrow = [0] * size
-            trainlist[i].loc[-j-1] = nullrow
-        trainlist[i].sort_index(inplace = True)
+        zeros = np.zeros((gap, size))
+        trainlist[i] = np.concatenate([zeros, trainlist[i]], axis=0)
+    arx = np.concatenate(trainlist, axis=0)
 
-    dfx = pd.concat(trainlist)
-    dfx.reset_index(inplace=True, drop=True)
+#        trainlist[i]
+##        for j in range(gap):
+##            nullrow = [0] * size
+##            trainlist[i].loc[-j-1] = nullrow
+#        trainlist[i].sort_index(inplace = True)
 
-    arx = np.array(dfx)
+#    dfx = pd.concat(trainlist)
+#    dfx.reset_index(inplace=True, drop=True)
+#
+#    arx = np.array(dfx)
     arx = np.reshape(arx, (len(trainlist), maxtimepts, 111))
     return arx, ary
 
