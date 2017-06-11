@@ -12,7 +12,7 @@ from keras.layers import LSTM
 from keras.layers import GRU
 from keras.layers.core import Masking
 from keras.layers import Merge
-from keras.layers import Conv1D, GlobalAveragePooling1D
+from keras.regularizers import l2
 
 from os.path import exists
 
@@ -42,19 +42,37 @@ def create_model(n_neurons, batch_input_shape):
 
     model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
 
-    model.add(GRU(n_neurons[0], return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(GRU(
+        n_neurons[0],
+        return_sequences=True,
+        stateful=True,
+        batch_input_shape=batch_input_shape,
+        dropout=0.5,
+        use_bias=False
+    ))
+
+    model.add(GRU(
+        n_neurons[1],
+        return_sequences=False,
+        stateful=True,
+        batch_input_shape=batch_input_shape,
+        dropout=0.5,
+        use_bias=False
+    ))
+
+    model.add(Dense(
+        n_neurons[2],
+        activation='tanh',
+        use_bias=False
+    ))
     model.add(Dropout(0.5))
 
-    model.add(GRU(n_neurons[1], return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
-    model.add(Dropout(0.5))
-
-#    model.add(Dense(n_neurons[2], activation='linear'))
-
-    model.add(Dense(1, activation='linear'))
+    model.add(Dense(1, activation='linear', use_bias=False))
     return model
 
 def compress_columns(cols, newname, data):
     data[newname] = np.sum(data[cols], axis=1)
+
 
 def get_user_data(user, binvars, month, maxtimepts, columns):
     y_column = 'delta_smoothed_%dmonths' % month
