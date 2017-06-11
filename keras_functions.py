@@ -11,6 +11,10 @@ from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.layers import GRU
 from keras.layers.core import Masking
+from keras.layers import Merge
+from keras.layers import Conv1D, GlobalAveragePooling1D
+
+from os.path import exists
 
 # feature scaling has been removed from this version--we can't
 # scale each sample by itself, every sample must be done together
@@ -25,18 +29,35 @@ def get_categorical_variables( colnames ):
 
     return catvars
 
+def create_model(n_neurons, batch_input_shape):
+    model = Sequential()
+
+    model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
+
+    model.add(GRU(n_neurons[0], return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(Dropout(0.5))
+
+    model.add(GRU(n_neurons[1], return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
+    model.add(Dropout(0.5))
+
+#    model.add(Dense(n_neurons[2], activation='linear'))
+
+    model.add(Dense(1, activation='linear'))
+    return model
+
 def get_user_data(user, binvars, month, maxtimepts, columns):
     y_column = 'delta_smoothed_%dmonths' % month
 
     # -----------------------------
     # Load data
     data = pd.read_csv('rnn_train/%s.csv'%user)
-    data = data[columns]
-    print data.problem_rating
 
     # ABORT if file is empty
     if data.shape[0] == 0:
         return None, None, None, None
+
+    # reorder columns: flat files columns are mixed bc they were made from python dict
+    data = data[columns]
 
     # drop the first contest--we don't have a "real" change from a null expectation here
     # assign all activity to the second contest
@@ -84,34 +105,14 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
     groups = df_train.groupby('contestid')
 
     # -----------------------------
-    # Get the differences in times of interest
-    # Otherwise normalization would make them too small to be meaningful
-
-    # current quantities
-    # ratingupdatetimeseconds    time at end of a contest
-    # solvetimeseconds           time at first solve
-    # starttimeseconds           time of first submit
-    # stoptimeseconds            time of last submit
-
-    # quantities of interest
-    # hours_solve_to_contest      hours between solve and end of contest
-    # hours_submit_to_contest     hours between first submit and end of contest
-    # hours_submit_to_solve       hours between first submit and solve
-    df_train['hours_solve_to_contest'] = (df_train['ratingupdatetimeseconds'] - df_train['solvetimeseconds']) / 3600.0
-    df_train['hours_submit_to_contest'] = (df_train['ratingupdatetimeseconds'] - df_train['starttimeseconds']) / 3600.0
-    df_train['hours_submit_to_solve'] = (df_train['solvetimeseconds'] - df_train['starttimeseconds']) / 3600.0
-
-    # some problems were never solved. In this case hours_submit_to_solve is set to -1
-    idx_neversolved = df_train['solvetimeseconds'] < 0
-    df_train.loc[idx_neversolved, 'hours_solve_to_contest'] = -1
-    df_train.loc[idx_neversolved, 'hours_submit_to_solve'] = -1
-
+    # drop columns we don't need
     df_train.drop("ratingupdatetimeseconds", axis=1, inplace=True)
     df_train.drop("solvetimeseconds", axis=1, inplace=True)
     df_train.drop("starttimeseconds", axis=1, inplace=True)
     df_train.drop("stoptimeseconds",  axis=1, inplace=True)
     df_train.drop("newrating",  axis=1, inplace=True)
-    df_train.drop("oldrating",  axis=1, inplace=True)
+    df_train.drop("problemid",  axis=1, inplace=True)
+    #df_train.drop("oldrating",  axis=1, inplace=True)
 
     # -----------------------------
     # create list of inputs for training
@@ -126,9 +127,6 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
         y = v.loc[:, y_column].values[0]
         v.drop(y_column, inplace=True, axis=1)
 
-        print list(v.columns.values).index('problem_rating')
-        print v.problem_rating
-        
         trainlist.append(np.array(v))
         #trainlist.append(v)
         ylist.append(y)
@@ -151,15 +149,86 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
     
     return arx, ary, maxtimepts_actual, colnames 
 
-def create_model(n_neurons, batch_input_shape):
+def get_train_data(handles, binvars, correct_cols, maxtimepts):
+    X = []
+    Y = []
+    maxt = 0
+    lens = [0] * len(handles)
+    runsum = 0
+    for i in range(len(handles)):
+        filename = 'rnn_train/' + handles[i] + ".csv"
+        print filename
+
+        if not exists(filename):
+            continue
+
+        x, y, t, colnames = get_user_data(
+            handles[i],
+            binvars=binvars,
+            month=3,
+            maxtimepts=maxtimepts,
+            columns=correct_cols)
+
+        if x is None:
+            continue
+
+        maxt = max(t, maxt)
+        X.append(x)
+        Y.append(y)
+        runsum += x.shape[0]
+        lens[i] = runsum
+
+    return X, Y, lens, maxt, colnames
+
+def wide_and_deep(n_neurons, wideshape, deepshape, verbose=False):
+    # ---------------------------------
+    # Wide network for binary variables
+    # ---------------------------------
+    wide = Sequential()
+    wide.add(Conv1D(
+        filters=n_neurons[2],
+        kernel_size=wideshape[1],
+        batch_input_shape=wideshape
+    ))
+    wide.add(GlobalAveragePooling1D())
+
+    # ---------------------------------
+    # Deep network for dense variables
+    # ---------------------------------
+    deep = Sequential()
+    deep.add(Masking(mask_value=0, batch_input_shape = deepshape))
+
+    deep.add(GRU(
+        n_neurons[0],
+        return_sequences=True,
+        stateful=False,
+        batch_input_shape=deepshape,
+        dropout=0.5,
+        use_bias=False
+    ))
+
+    deep.add(GRU(
+        n_neurons[1],
+        return_sequences=False,
+        stateful=True,
+        batch_input_shape=deepshape,
+        dropout=0.5,
+        use_bias=False
+    ))
+
+    deep.add(Dense(n_neurons[2], activation='tanh', use_bias=False))
+    deep.add(Dropout(0.5))
+
+    # ---------------------------------
+    # Combine Wide and Deep
+    # ---------------------------------
     model = Sequential()
+    model.add(Merge([wide, deep], mode='concat', concat_axis=1))
+    model.add(Dense(1, activation='tanh', use_bias=False))
 
-    model.add(Masking(mask_value=0, batch_input_shape = batch_input_shape))
+    if verbose:
+        print wide.summary()
+        print deep.summary()
+        print model.summary()
 
-    model.add(GRU(n_neurons[0], return_sequences=True, stateful=True, batch_input_shape=batch_input_shape))
-    model.add(Dropout(0.5))
-
-    model.add(GRU(n_neurons[1], return_sequences=False, stateful=True, batch_input_shape=batch_input_shape))
-
-    model.add(Dense(1, activation='tanh'))
     return model
