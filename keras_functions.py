@@ -18,6 +18,14 @@ from os.path import exists
 
 # feature scaling has been removed from this version--we can't
 # scale each sample by itself, every sample must be done together
+java = [ 'Java 6', 'Java 8', 'Java 8 ZIP', 'Java 7' ]
+python = [ 'Python 3', 'Python 2', 'PyPy 2', 'PyPy 3']
+lowlevel = [ 'GNU C++14', 'GNU C', 'MS C++', 'GNU C++', 'GNU C++0x', 'MS C#', 'GNU C11', 'GNU C++11 ZIP', 'GNU C++11', 'Mono C#', 'Delphi', ]
+otherlang = [ 'Haskell', 'Factor', 'Picat', 'Secret_171', 'PHP', 'Tcl', 'Scala', 'Io', 'FPC', 'J', 'Rust', 'JavaScript', 'Ada', 'Go', 'Cobol', 'Befunge', 'Roco', 'Ruby', 'Kotlin', 'F#', 'Perl', 'Pike', 'D', 'Ocaml' ]
+errors = [ "COMPILATION_ERROR", "RUNTIME_ERROR", "CRASHED", "REJECTED", "IDLENESS_LIMIT_EXCEEDED"]
+wrong = [ "TIME_LIMIT_EXCEEDED", "WRONG_ANSWER", "CHALLENGED", "MEMORY_LIMIT_EXCEEDED" ]
+drop = [ 'FALSE', 'SKIPPED', 'TESTING', 'PARTIAL', 'REJECTED', 'PRESENTATION_ERROR', 'FAILED' ]
+practice = [ 'GYM', 'OUT_OF_COMPETITION', 'VIRTUAL' ]
 
 def get_categorical_variables( colnames ):
     con = psycopg2.connect(database='codeforces', user='Joy')
@@ -44,6 +52,9 @@ def create_model(n_neurons, batch_input_shape):
 
     model.add(Dense(1, activation='linear'))
     return model
+
+def compress_columns(cols, newname, data):
+    data[newname] = np.sum(data[cols], axis=1)
 
 def get_user_data(user, binvars, month, maxtimepts, columns):
     y_column = 'delta_smoothed_%dmonths' % month
@@ -82,9 +93,20 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
     # -----------------------------
     # binarize some variables
     data[binvars] = data[binvars].fillna(value=0)
-
     for b in binvars:
         data.loc[ data[b] > 0, b] = 1
+
+
+    # compress languages
+    compress_columns(java, 'java', data)
+    compress_columns(lowlevel, 'lowlevel', data)
+    compress_columns(python, 'python', data)
+    compress_columns(otherlang, 'otherlang', data)
+    compress_columns(errors, 'errors', data)
+    compress_columns(wrong, 'wrong', data)
+    compress_columns(practice, 'practice', data)
+    data.drop(binvars + errors + wrong + drop, axis=1, inplace=True)
+
 
     # -----------------------------
     # remove information for other months
