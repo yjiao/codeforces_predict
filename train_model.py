@@ -97,28 +97,9 @@ if __name__ == '__main__':
         correct_cols = [t.strip() for t in f.readline().split(',')]
         correct_cols = [c for c in correct_cols if c not in tags]
 
-#    # ----------------------------------------------------------
-#    # Modify flatfiles into padded numpy ndarrays for training
-#    # ----------------------------------------------------------
-#    # randomly sample 10 people to get the max
-#    idx = [randint(0, len(train_handles)) for i in range(10)]
-#    X, Y, _, maxt, colnames = get_train_data(np.array(train_handles)[idx], binvars, correct_cols, maxtimepts, path)
-#
-#    # ------------------------------------------
-#    # Scaling
-#    # ------------------------------------------
-#    # note here we are simply concattentating all of X and setting a max on that
-#    Xflat = np.concatenate(X)
-#    Xflat = np.reshape(Xflat, [Xflat.shape[0]*Xflat.shape[1], Xflat.shape[2]])
-#
-#    xmax = np.max(Xflat, axis=0)
-#    xmax[xmax == 0] = 1
-#    # normalization vector
-#    # set rating columns on the same scale
-#    colnames_rate = ['smoothed_%dmonths'%month, 'oldrating', 'problem_rating']
-#    maxrating = 5000.0
-#    idx_rate = [colnames.index(c) for c in colnames_rate]
-#    xmax[idx_rate] = maxrating
+    # ------------------------------------------
+    # Scaling
+    # ------------------------------------------
     xmax = np.array([
             maxtimepts,
             maxtime,
