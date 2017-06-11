@@ -24,7 +24,7 @@ lowlevel = [ 'GNU C++14', 'GNU C', 'MS C++', 'GNU C++', 'GNU C++0x', 'MS C#', 'G
 otherlang = [ 'Haskell', 'Factor', 'Picat', 'Secret_171', 'PHP', 'Tcl', 'Scala', 'Io', 'FPC', 'J', 'Rust', 'JavaScript', 'Ada', 'Go', 'Cobol', 'Befunge', 'Roco', 'Ruby', 'Kotlin', 'F#', 'Perl', 'Pike', 'D', 'Ocaml' ]
 errors = [ "COMPILATION_ERROR", "RUNTIME_ERROR", "CRASHED", "REJECTED", "IDLENESS_LIMIT_EXCEEDED"]
 wrong = [ "TIME_LIMIT_EXCEEDED", "WRONG_ANSWER", "CHALLENGED", "MEMORY_LIMIT_EXCEEDED" ]
-drop = [ 'FALSE', 'SKIPPED', 'TESTING', 'PARTIAL', 'REJECTED', 'PRESENTATION_ERROR', 'FAILED' ]
+drop = [ 'FALSE', 'SKIPPED', 'TESTING', 'PARTIAL', 'REJECTED', 'PRESENTATION_ERROR', 'FAILED', 'rank' ]
 practice = [ 'GYM', 'OUT_OF_COMPETITION', 'VIRTUAL' ]
 
 def get_categorical_variables( colnames ):
@@ -73,8 +73,7 @@ def create_model(n_neurons, batch_input_shape):
 def compress_columns(cols, newname, data):
     data[newname] = np.sum(data[cols], axis=1)
 
-
-def get_user_data(user, binvars, month, maxtimepts, columns):
+def get_user_data(user, binvars, month, maxtimepts, columns, maxtime):
     y_column = 'delta_smoothed_%dmonths' % month
 
     # -----------------------------
@@ -159,6 +158,11 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
     trainlist = []
     ylist = []
     colnames = [d for d in df_train.columns.values if d != 'contestid' and d != y_column]
+
+    # -----------------------------
+    # Clip time columns, some people did problems arbitrarily long in the past
+    hourcols = ['hours_solve_to_contest', 'hours_submit_to_contest', 'hours_submit_to_solve']
+    df_train[hourcols] = np.clip(df_train[hourcols], 0, maxtime)
     
     for k, v in groups:
         v.is_copy = False
@@ -181,22 +185,26 @@ def get_user_data(user, binvars, month, maxtimepts, columns):
     size = trainlist[0].shape[1]
     for i in range(len(trainlist)):
         gap = maxtimepts - len(trainlist[i])
-        zeros = np.zeros((gap, size))
-        trainlist[i] = np.concatenate([trainlist[i], zeros], axis=0)
+        if (gap < 0):
+            trainlist[i] = trainlist[i][0:maxtimepts,:]
+        else:
+            zeros = np.zeros((gap, size))
+            trainlist[i] = np.concatenate([trainlist[i], zeros], axis=0)
 
     arx = np.concatenate(trainlist, axis=0)
     arx = np.reshape(arx, (len(trainlist), maxtimepts, n_features))
     
     return arx, ary, maxtimepts_actual, colnames 
 
-def get_train_data(handles, binvars, correct_cols, maxtimepts):
+def get_train_data(handles, binvars, correct_cols, maxtimepts, path, maxtime):
     X = []
     Y = []
     maxt = 0
     lens = [0] * len(handles)
     runsum = 0
+
     for i in range(len(handles)):
-        filename = 'rnn_train/' + handles[i] + ".csv"
+        filename = path + handles[i] + ".csv"
         print filename
 
         if not exists(filename):
@@ -207,7 +215,8 @@ def get_train_data(handles, binvars, correct_cols, maxtimepts):
             binvars=binvars,
             month=3,
             maxtimepts=maxtimepts,
-            columns=correct_cols)
+            columns=correct_cols,
+            maxtime=maxtime)
 
         if x is None:
             continue
