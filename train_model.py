@@ -126,14 +126,14 @@ if __name__ == '__main__':
     # ------------------------------------------
     # Iterate through training set
     # ------------------------------------------
-    #histories = []
+    last_idx = 365
     if exists('model_weights.h5'):
-        weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime, load='model_weights.h5')
+        weights = train_sample(train_handles[last_idx], correct_cols, xmax, ymax, maxtimepts, maxtime, load='model_weights.h5', epochs=200)
     else:
-        weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime)
+        weights = train_sample(train_handles[last_idx], correct_cols, xmax, ymax, maxtimepts, maxtime, epochs=200)
 
-    for i, handle in enumerate(train_handles[23:]):
-        print i, handle
+    for i, handle in enumerate(train_handles[last_idx + 1:]):
+        print last_idx + i + 1, handle
         if not exists(path + handle + ".csv"):
             continue
-        weights = train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=weights)
+        weights = train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=weights, epochs=200)
