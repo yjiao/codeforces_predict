@@ -41,6 +41,9 @@ def train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=
     # ------------------------------------------
     X, Y, _, _, colnames = get_train_data([handle], binvars, correct_cols, maxtimepts, path, maxtime)
 
+    if len(X) == 0:
+        return weights
+
     batchsize = X[0].shape
     model = make_model(batchsize, weights=weights, load=load)
 
@@ -58,7 +61,7 @@ def train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=
 
     write_to_file(history)
     model.save_weights('model_weights.h5')
-    return history, model.get_weights()
+    return model.get_weights()
 
 def write_to_file(history):
     loss = np.concatenate([h.history['loss'] for h in history])
@@ -125,12 +128,12 @@ if __name__ == '__main__':
     # ------------------------------------------
     #histories = []
     if exists('model_weights.h5'):
-        _, weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime, load='model_weights.h5')
+        weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime, load='model_weights.h5')
     else:
-        _, weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime)
+        weights = train_sample(train_handles[0], correct_cols, xmax, ymax, maxtimepts, maxtime)
 
-    for i, handle in enumerate(train_handles[1:]):
+    for i, handle in enumerate(train_handles[23:]):
         print i, handle
         if not exists(path + handle + ".csv"):
             continue
-        _, weights = train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=weights)
+        weights = train_sample(handle, correct_cols, xmax, ymax, maxtimepts, maxtime, weights=weights)
