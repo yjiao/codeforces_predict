@@ -29,19 +29,25 @@ def get_categorical_variables( colnames ):
 def compress_columns(cols, newname, data):
     data[newname] = np.sum(data[cols], axis=1)
 
-def get_user_data(user, binvars, month, columns):
+def binarize_variables(data, binvars):
+    for b in binvars:
+        data.loc[ data[b] > 0, b] = 1
+
+    compress_columns(java, 'java', data)
+    compress_columns(lowlevel, 'lowlevel', data)
+    compress_columns(python, 'python', data)
+    compress_columns(otherlang, 'otherlang', data)
+    compress_columns(errors, 'errors', data)
+    compress_columns(wrong, 'wrong', data)
+    compress_columns(practice, 'practice', data)
+    data.drop(binvars + errors + wrong + drop + practice, axis=1, inplace=True)
+
+
+def get_user_data(data, month, columns):
     y_column = 'delta_smoothed_%dmonths' % month
 
-    # -----------------------------
-    # Load data
-    data = pd.read_csv('rnn_train/%s.csv'%user)
-
-    # ABORT if file is empty
-    if data.shape[0] == 0:
-        return None, None, None, None
-
-    # reorder columns: flat files columns are mixed bc they were made from python dict
-    data = data[columns]
+    data.fillna(value=0, inplace=True)
+    binarize_variables(data, binvars)
 
     # -----------------------------
     # drop the first contest--we don't have a "real" change from a null expectation here
@@ -51,7 +57,7 @@ def get_user_data(user, binvars, month, columns):
     
     # ABORT if only one contest
     if len(cids) == 1:
-        return None, None, None, None
+        return None
 
     cids.sort()
     cid1 = cids[0]
@@ -63,25 +69,6 @@ def get_user_data(user, binvars, month, columns):
     data.loc[idx1, 'ratingupdatetimeseconds'] = data.loc[idx2, 'ratingupdatetimeseconds']
     data.loc[idx1, 'contestid'] = data.loc[idx2, 'contestid']
     data.loc[idx1, y_column] = data.loc[idx2, y_column]
-
-    # -----------------------------
-    # binarize some variables
-    #data[binvars] = data[binvars].fillna(value=0)
-    data.fillna(value=0, inplace=True)
-    for b in binvars:
-        data.loc[ data[b] > 0, b] = 1
-
-
-    # compress languages
-    compress_columns(java, 'java', data)
-    compress_columns(lowlevel, 'lowlevel', data)
-    compress_columns(python, 'python', data)
-    compress_columns(otherlang, 'otherlang', data)
-    compress_columns(errors, 'errors', data)
-    compress_columns(wrong, 'wrong', data)
-    compress_columns(practice, 'practice', data)
-    print data.loc[157, ['PRACTICE', 'CONTESTANT', 'practice']]
-    data.drop(binvars + errors + wrong + drop + practice, axis=1, inplace=True)
 
 
     # -----------------------------
@@ -95,83 +82,44 @@ def get_user_data(user, binvars, month, columns):
         
         df_data.drop([name1, name2], axis=1, inplace=True)
 
-    df_data.drop(['index', 'newrating'], axis=1, inplace=True)
+    df_data.drop(['index', 'newrating', 'CONTESTANT'], axis=1, inplace=True)
     return df_data
-
-#    df_train.fillna(value=0, inplace=True)
-#
-#    # -----------------------------
-#    # Group by contest
-#    groups = df_train.groupby('contestid')
-#
-#    # -----------------------------
-#    # drop columns we don't need
-#    df_train.drop("ratingupdatetimeseconds", axis=1, inplace=True)
-#    df_train.drop("solvetimeseconds", axis=1, inplace=True)
-#    df_train.drop("starttimeseconds", axis=1, inplace=True)
-#    df_train.drop("stoptimeseconds",  axis=1, inplace=True)
-#    df_train.drop("newrating",  axis=1, inplace=True)
-#    df_train.drop("problemid",  axis=1, inplace=True)
-#    #df_train.drop("oldrating",  axis=1, inplace=True)
-#
-#    # -----------------------------
-#    # create list of inputs for training
-#    trainlist = []
-#    ylist = []
-#    colnames = [d for d in df_train.columns.values if d != 'contestid' and d != y_column]
-#
-#    # -----------------------------
-#    # Clip time columns, some people did problems arbitrarily long in the past
-#    hourcols = ['hours_solve_to_contest', 'hours_submit_to_contest', 'hours_submit_to_solve']
-#    df_train[hourcols] = np.clip(df_train[hourcols], 0, maxtime)
-#    
-#    # -----------------------------
-#    # group by contests
-#    for k, v in groups:
-#        v.is_copy = False
-#        
-#        v.drop('contestid', axis=1, inplace=True)
-#        y = v.loc[:, y_column].values[0]
-#        v.drop(y_column, inplace=True, axis=1)
-#
-#        #trainlist.append(np.array(v))
-#        trainlist.append(v)
-#        ylist.append(y)
-#
-#    ary = np.array(ylist)
 
     return arx, ary, maxtimepts_actual, colnames 
 
-def get_train_data(handles, binvars, correct_cols, maxtimepts, path, maxtime):
-    X = []
-    Y = []
-    maxt = 0
-    lens = [0] * len(handles)
-    runsum = 0
+def agg_by_window():
+    pass
 
-    for i in range(len(handles)):
-        filename = path + handles[i] + ".csv"
-        print filename
+def get_features(handle, binvars, correct_cols, path='rnn_train/', month=3):
+    # -----------------------------
+    # Load data
+    filename = path + handles[i] + ".csv"
+    if not exists(filename):
+        continue
 
-        if not exists(filename):
-            continue
+    data = pd.read_csv(filename)
+    
+    # ABORT if file is empty
+    if data.shape[0] == 0:
+        return None
 
-        x, y, t, colnames = get_user_data(
-            handles[i],
-            binvars=binvars,
-            month=3,
-            maxtimepts=maxtimepts,
-            columns=correct_cols,
-            maxtime=maxtime)
+    # reorder columns: flat files columns are mixed bc they were made from python dict
+    data = data[columns]
 
-        if x is None:
-            continue
+    x = get_user_data(
+        data,
+        month=month,
+        columns=correct_cols)
 
-        maxt = max(t, maxt)
-        X.append(x)
-        Y.append(y)
-        runsum += x.shape[0]
-        lens[i] = runsum
+    if x is None:
+        continue
+
+    # -----------------------------
+    maxt = max(t, maxt)
+    X.append(x)
+    Y.append(y)
+    runsum += x.shape[0]
+    lens[i] = runsum
 
     return X, Y, lens, maxt, colnames
 
