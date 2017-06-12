@@ -42,10 +42,21 @@ def binarize_variables(data, binvars):
     compress_columns(practice, 'practice', data)
     data.drop(binvars + errors + wrong + drop + practice, axis=1, inplace=True)
 
+def remove_nonrelevant_months(data, month=3):
+    # remove information for other months
+    for m in range(1,6):
+        if m == month:
+            continue
+        name1 = "delta_smoothed_%dmonths" % m
+        name2 = "smoothed_%dmonths" % m
+        
+        data.drop([name1, name2], axis=1, inplace=True)
 
-def get_user_data(data, month, columns):
+def get_user_data(data, binvars, month, columns):
     y_column = 'delta_smoothed_%dmonths' % month
 
+    # -----------------------------
+    # binarize variables
     data.fillna(value=0, inplace=True)
     binarize_variables(data, binvars)
 
@@ -71,21 +82,13 @@ def get_user_data(data, month, columns):
     data.loc[idx1, y_column] = data.loc[idx2, y_column]
 
 
+    data.drop(['index', 'newrating', 'CONTESTANT'], axis=1, inplace=True)
+
     # -----------------------------
-    # remove information for other months
-    df_data = data
-    for m in range(1,6):
-        if m == month:
-            continue
-        name1 = "delta_smoothed_%dmonths" % m
-        name2 = "smoothed_%dmonths" % m
-        
-        df_data.drop([name1, name2], axis=1, inplace=True)
+    # remove unncessary months
+    remove_nonrelevant_months(data, month)
 
-    df_data.drop(['index', 'newrating', 'CONTESTANT'], axis=1, inplace=True)
-    return df_data
-
-    return arx, ary, maxtimepts_actual, colnames 
+    return data
 
 def agg_by_window():
     pass
@@ -93,9 +96,9 @@ def agg_by_window():
 def get_features(handle, binvars, correct_cols, path='rnn_train/', month=3):
     # -----------------------------
     # Load data
-    filename = path + handles[i] + ".csv"
+    filename = path + handle + ".csv"
     if not exists(filename):
-        continue
+        return None
 
     data = pd.read_csv(filename)
     
@@ -104,22 +107,13 @@ def get_features(handle, binvars, correct_cols, path='rnn_train/', month=3):
         return None
 
     # reorder columns: flat files columns are mixed bc they were made from python dict
-    data = data[columns]
+    data = data[correct_cols]
 
     x = get_user_data(
         data,
+        binvars,
         month=month,
         columns=correct_cols)
 
-    if x is None:
-        continue
-
-    # -----------------------------
-    maxt = max(t, maxt)
-    X.append(x)
-    Y.append(y)
-    runsum += x.shape[0]
-    lens[i] = runsum
-
-    return X, Y, lens, maxt, colnames
+    return x
 
