@@ -18,7 +18,7 @@ def get_categorical_variables( colnames ):
 
     return catvars
 
-def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, con):
+def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, con, df_tags):
     filename = 'rnn_train/%s.csv' % user
     print filename
     trainlist = []
@@ -50,7 +50,6 @@ def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, co
         ex['points'] = df_user_problem.points[0]
         ex['problemid'] = df_user_problem.problemid.values[0]
         ex['contestid'] = df_user_problem.contestid.values[0]
-        print ex
         
         # ----------------------------------
         # user rating info
@@ -75,21 +74,10 @@ def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, co
             idx_prevcontest = user_rating_contest.ratingupdatetimeseconds == max(user_rating_contest.ratingupdatetimeseconds)
             user_rating_contest = user_rating_contest.loc[idx_prevcontest].to_dict(orient='records')[0]
 
-        # ex:
-        # {'points': 1250, 'stoptimeseconds': 1418838928, 'starttimeseconds': 1418836951, 'contestid': '497', 'problemid': 'B'}
-        # user_rating_contest:
-	# {'index': 425398, 'delta_smoothed_5months': -6.49242424, 'handle':
-	# 'chenmark', 'smoothed_5months': 1867.09090909, 'delta_smoothed_3months':
-	# 30.87142857, 'newrating': 1861, 'rank': 358, 'smoothed_4months': 1876.0,
-	# 'smoothed_3months': 1898.57142857, 'smoothed_2months': 1838.33333333,
-	# 'smoothed_1months': 1861.0, 'contestid': 497, 'ratingupdatetimeseconds':
-	# 1418841000, 'delta_smoothed_2months': -39.54166667, 'oldrating': 1789,
-	# 'delta_smoothed_4months': 8.3, 'delta_smoothed_1months': -42.8}
         user_rating_contest['next_contestid'] = user_rating_contest['contestid']
-        user_rating_contest.pop('next_contestid', None)
+        user_rating_contest.pop('contestid', None)
         user_rating_contest.pop('index', None)
         ex.update(user_rating_contest)
-        print ex
 
         # ----------------------------------
         # verdicts
@@ -161,13 +149,8 @@ if __name__ == "__main__":
     con = psycopg2.connect(database='codeforces', user='Joy')
     cur = con.cursor()
 
-
-    from sqlalchemy import create_engine
-    engine = create_engine('postgres://%s@localhost/%s'%('Joy', 'codeforces'))
-
     # note this is 4x faster than getting it from sql
     df_smooth = pd.read_csv('user_ratings_smoothed.csv', engine = 'c')
-
 
     cur.execute("SELECT * FROM handles")
     all_handles = [h[0] for h in cur.fetchall()]
@@ -186,7 +169,6 @@ if __name__ == "__main__":
     # problem stats
     # ------------------------------------------
     # problem rating and tags
-
     df_prate = pd.read_sql("SELECT * FROM problem_rating", con)
     df_prate.set_index(['contestid', 'problemid'], inplace=True)
 
@@ -216,7 +198,7 @@ if __name__ == "__main__":
     lastidx = 57
     user = 'chenmark'
     user_rating = df_smooth.loc[user, :]
-    getTraining(user, user_rating, df_prate, user_dict[user], binvars, con)
+    getTraining(user, user_rating, df_prate, user_dict[user], binvars, con, df_tags)
 #    for i, user in enumerate(all_handles[lastidx:]):
 #        if user in present_handles:
 #            print lastidx + i, user
