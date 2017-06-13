@@ -2,12 +2,21 @@ import numpy as np
 import pandas as pd
 import psycopg2
 from collections import defaultdict
-from keras_functions import *
 from os.path import exists
 
 # current to-do:
 # keep those with only 1 contests?
 # keep last trailing activities?
+
+def get_categorical_variables( colnames ):
+    con = psycopg2.connect(database='codeforces', user='Joy')
+    cur = con.cursor()
+    catvars = []
+    for c in colnames:
+        cur.execute("select * from %s" % c, con)
+        catvars.extend([c[1] for c in cur.fetchall()])
+
+    return catvars
 
 def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, con):
     filename = 'rnn_train/%s.csv' % user
@@ -20,6 +29,8 @@ def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, co
     user_rating.reset_index(inplace=True)
     
     for hdl_cid_pid in hdl_cid_pid_list:
+        if hdl_cid_pid[1] not in ['497', '366', '429']:
+            continue
         q = """
         SELECT * FROM submissions
             WHERE
@@ -39,29 +50,33 @@ def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, co
         ex['points'] = df_user_problem.points[0]
         ex['problemid'] = df_user_problem.problemid.values[0]
         ex['contestid'] = df_user_problem.contestid.values[0]
+        print ex
         
         # ----------------------------------
         # user rating info
-        # find closest next contest
+        # find closest PREVIOUS contest
         # if there is no next contest,then skip this entry
-
         ex['starttimeseconds'] = min(df_user_problem.starttimeseconds)
         ex['stoptimeseconds'] = max(df_user_problem.starttimeseconds)
 
         # all contests greater than submit time
+        idx_prevcontest = user_rating.ratingupdatetimeseconds <= ex['starttimeseconds']
         idx_nextcontest = user_rating.ratingupdatetimeseconds >= ex['stoptimeseconds']
         
-        if not np.any(idx_nextcontest):
-            continue
+        # if this is the first few submissions before the user has competed,
+        # then we set the "current rating" to the next contest rating instead
+        if not np.any(idx_prevcontest):
+            user_rating_contest = user_rating.loc[idx_nextcontest]
+            # take min of all contests greater than submit time--this is the next contest
+            idx_nextcontest = user_rating_contest.ratingupdatetimeseconds == min(user_rating_contest.ratingupdatetimeseconds)
+            user_rating_contest = user_rating_contest.loc[idx_nextcontest].to_dict(orient='records')[0]
+        else:
+            user_rating_contest = user_rating.loc[idx_nextcontest]
+            idx_prevcontest = user_rating_contest.ratingupdatetimeseconds == max(user_rating_contest.ratingupdatetimeseconds)
+            user_rating_contest = user_rating_contest.loc[idx_prevcontest].to_dict(orient='records')[0]
 
-        user_rating_contest = user_rating.loc[idx_nextcontest]
-        user_rating_contest.is_copy = False
-
-        # take min of all contests greater than submit time--this is the next contest
-        idx_nextcontest = user_rating_contest.ratingupdatetimeseconds == min(user_rating_contest.ratingupdatetimeseconds)
-
-        user_rating_contest = user_rating_contest.loc[idx_nextcontest].to_dict(orient='records')[0]
-        # ex at this point: {'points': 1250, 'stoptimeseconds': 1418838928, 'starttimeseconds': 1418836951, 'contestid': '497', 'problemid': 'B'}
+        # ex:
+        # {'points': 1250, 'stoptimeseconds': 1418838928, 'starttimeseconds': 1418836951, 'contestid': '497', 'problemid': 'B'}
         # user_rating_contest:
 	# {'index': 425398, 'delta_smoothed_5months': -6.49242424, 'handle':
 	# 'chenmark', 'smoothed_5months': 1867.09090909, 'delta_smoothed_3months':
@@ -73,9 +88,8 @@ def getTraining(user, user_rating, problem_rating, hdl_cid_pid_list, binvars, co
         user_rating_contest['next_contestid'] = user_rating_contest['contestid']
         user_rating_contest.pop('next_contestid', None)
         user_rating_contest.pop('index', None)
-        print user_rating_contest
-        #print user_rating_contest
         ex.update(user_rating_contest)
+        print ex
 
         # ----------------------------------
         # verdicts
@@ -200,10 +214,13 @@ if __name__ == "__main__":
 
 
     lastidx = 57
-    for i, user in enumerate(all_handles[lastidx:]):
-        if user in present_handles:
-            print lastidx + i, user
-            user_rating = df_smooth.loc[user, :]
-            getTraining(user, user_rating, df_prate, user_dict[user], binvars, con)
-
+    user = 'chenmark'
+    user_rating = df_smooth.loc[user, :]
+    getTraining(user, user_rating, df_prate, user_dict[user], binvars, con)
+#    for i, user in enumerate(all_handles[lastidx:]):
+#        if user in present_handles:
+#            print lastidx + i, user
+#            user_rating = df_smooth.loc[user, :]
+#            getTraining(user, user_rating, df_prate, user_dict[user], binvars, con)
+#
 
