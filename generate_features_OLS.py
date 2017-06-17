@@ -430,6 +430,8 @@ def parse_user(handle, con, df_smooth, df_prate, df_tags, bindict):
     n_problems = 0
 
     for i in idx:
+        if qfront >= len(subdict):
+            break
         if i['type'] == 'problem':
             qback += 1
             n_problems += 1
@@ -487,16 +489,13 @@ if __name__ == "__main__":
     df_tags.set_index(['contestid', 'problemid'], inplace=True)
     df_tags.sort_index(inplace=True)
 
-    cur.execute("SELECT * FROM handles")
-    all_handles = [h[0] for h in cur.fetchall()]
     present_handles = set(df_smooth.handle)
 
     bindict = get_binary_dictionary()
 
-    lastidx = 43
-    for i, user in enumerate(all_handles[lastidx:]):
-        if user in present_handles:
-            print lastidx + i, user
-	    user_rating = df_smooth.loc[df_smooth.handle == user]
-	    data = parse_user(user, con, df_smooth, df_prate, df_tags, bindict)
-	    data.to_csv("ols_train/%s.csv" % user, index=False)
+    lastidx = 143
+    for i, user in enumerate(present_handles[lastidx:]):
+        print lastidx + i, user
+        user_rating = df_smooth.loc[df_smooth.handle == user]
+        data = parse_user(user, con, df_smooth, df_prate, df_tags, bindict)
+        data.to_csv("ols_train/%s.csv" % user, index=False)

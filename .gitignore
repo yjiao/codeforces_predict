@@ -5,3 +5,8 @@
 *.pyc
 *.pickle
 .ipynb_checkpoints/*
+*.h5
+*.gz
+frontend/*
+gspackage/*
+webapp/*
