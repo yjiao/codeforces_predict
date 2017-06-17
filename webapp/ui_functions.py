@@ -77,8 +77,9 @@ def get_shapes(x0, x1):
     return shapes
 
 def get_prate_hist(problems):
-    prate_contest = problems.loc[problems.participanttype == 'CONTESTANT', 'problem_rating']
-    prate_practice = problems.loc[problems.participanttype != 'CONTESTANT', 'problem_rating']
+    print problems.head()
+    prate_contest =  problems.loc[np.logical_and(problems.participanttype == 'CONTESTANT', problems.verdict=="OK"), 'problem_rating']
+    prate_practice = problems.loc[np.logical_and(problems.participanttype != 'CONTESTANT', problems.verdict=="OK"), 'problem_rating']
     _, bins = np.histogram(prate_contest, bins=30)
 #    histpractice, binpractice = np.histogram(prate_practice, bins=30)
     trace_histogram_contest = dict(

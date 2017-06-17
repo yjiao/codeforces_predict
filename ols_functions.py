@@ -141,8 +141,6 @@ def drafts():
     X.fillna(value=0, inplace=True)
     X['yval'] = Y
 
-    X['mod_perf'] = X.drdt * X.performance
-
     # --------------------------------------
     # introduce nonlinear functions
     for c in X.columns:

@@ -61,19 +61,22 @@ def genprofile_output():
 
     query = """
         SELECT 
-            submissions.starttimeseconds,
-            submissions.participanttype,
             problem_info.contestid,
             problem_info.problemid,
+            MIN(submissions.starttimeseconds),
+            submissions.participanttype,
             problem_info.contestname
         FROM submissions 
             INNER JOIN problem_info
                 ON 
+                    submissions.handle = '%s'
+                    AND
+                    submissions.verdict = 'OK'
+                    AND
                     problem_info.contestid = submissions.contestid
                     AND
                     problem_info.problemid = submissions.problemid
-                    AND
-                    submissions.handle = '%s'
+	GROUP BY problem_info.contestid, problem_info.problemid
         """ % handle
     problem_rating = pd.read_sql_query(query,con)
     problem_rating['starttimeseconds'] = pd.to_datetime(problem_rating['starttimeseconds'], unit='s')
@@ -94,6 +97,7 @@ def genprofile_output():
                     submissions.contestid = probability_solve.contestid
                     AND
                     submissions.problemid = probability_solve.problemid
+	GROUP BY submissions.contestid, submissions.problemid
         """ % (handle, handle)
     df_prob = pd.read_sql_query(query,con)
 

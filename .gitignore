@@ -10,3 +10,4 @@
 frontend/*
 gspackage/*
 webapp/*
+webapp/*.py
