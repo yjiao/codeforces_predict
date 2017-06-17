@@ -48,6 +48,7 @@ def get_train_val_test():
                 'delta_smoothed_4months',
                 'delta_smoothed_5months',
                 'smoothed_1months',
+                'rank',
                 'smoothed_2months',
                 'smoothed_4months',
                 'smoothed_5months',
