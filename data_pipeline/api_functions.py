@@ -1,6 +1,6 @@
 # coding: utf-8
 
-# # Contest Parser v1
+# Contest Parser
 # Goal is to return the following table
 #  
 # handle | rating | contestID | problemID | success 

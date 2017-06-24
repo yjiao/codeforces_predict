@@ -116,25 +116,3 @@ if __name__ == '__main__':
     print '   ------------------------------------'
     print "   Updating problem data file:", args.inputDataFile
     updateProblemData(args.inputDataFile, args.outputDataFile, args.forceUpdate)
-
-#    print '   ------------------------------------'
-#    print "   Getting all user problem submission information for:", args.handle
-#    # always overwrite
-#    try:
-#	df_user = api.getUserActivity(args.handle)
-#	df_user.to_csv(args.outputUserActivityFile, header=True, index=None, encoding='utf-8')
-#    except api.UserNotFound:
-#	print "   **********************************************"
-#	print "   ERROR: FAILED TO UPDATE USER ACTIVITY LIST."
-#	print "   User with handle", args.handle, "was not found at codeforces. Please double check to make sure the handle was entered correctly."
-#
-#    print '   ------------------------------------'
-#    print "   Getting user rating history for:", args.handle
-#    # always overwrite
-#    try:
-#	df_ratinghistory = api.getUserRatingHistory(args.handle)
-#	df_ratinghistory.to_csv(args.outputUserRatingFile, header=True, index=None, encoding='utf-8')
-#    except api.UserNotFound:
-#	print "   **********************************************"
-#	print "   ERROR: FAILED TO UPDATE USER ACTIVITY LIST."
-#	print "   User with handle", args.handle, "was not found at codeforces. Please double check to make sure the handle was entered correctly."

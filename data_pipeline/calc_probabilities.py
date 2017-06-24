@@ -1,3 +1,6 @@
+# calculates probabilities of a user solving (or failint to solve) a problem
+# based on ELO scores
+
 import pandas as pd
 import numpy as np
 from glob import glob

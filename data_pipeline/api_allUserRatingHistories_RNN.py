@@ -1,3 +1,6 @@
+# this is a one-off script for getting data for training recurrent neural
+# networks, not the general data pipeline
+
 import requests
 import pandas as pd
 from os import listdir
