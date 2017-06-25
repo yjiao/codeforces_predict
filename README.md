@@ -1,5 +1,5 @@
 
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/01_home.png?raw=true =600x)
+![](/screenshots/01_home.png?raw=true =600x)
 
 This repository hosts a collection of scripts used for generating the model behind [Code Coach](codecoach.fun), my project at Insight Data Science. This project uses an ensemble regressor trained on 20 million codeforces submissions to predict future rating changes based on past user behavior, and recommends problems on Codeforces for users to solve. Problem ratings (difficulties) were previously calculated [here](https://github.com/yjiao/codeforces-api). More information about the models can be found at [Code Coach](codecoach.fun).
 
