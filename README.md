@@ -1,7 +1,7 @@
 
 ![](/screenshots/01_home.png)
 
-This repository hosts a collection of scripts used for generating the model behind [Code Coach](codecoach.fun), my project at Insight Data Science. This project uses an ensemble regressor trained on 20 million codeforces submissions to predict future rating changes based on past user behavior, and recommends problems on Codeforces for users to solve. Problem ratings (difficulties) were previously calculated [here](https://github.com/yjiao/codeforces-api). More information about the models can be found at [Code Coach](http://codecoach.fun).
+This repository hosts a collection of scripts used for generating the model behind [Code Coach](http://codecoach.fun), my project at Insight Data Science. This project uses an ensemble regressor trained on 20 million codeforces submissions to predict future rating changes based on past user behavior, and recommends problems on Codeforces for users to solve. Problem ratings (difficulties) were previously calculated [here](https://github.com/yjiao/codeforces-api). More information about the models can be found at [Code Coach](http://codecoach.fun).
 
 
 While the code for training the ensemble regressors is desposited here, csv files and SQL databases were not uploaded due to size constraints. Additionally, while the data used for this project is publically available through the codeforces API, I wish to respect the privacy of codeforces users and not upload everyone's submission histories onto github.
