@@ -1,101 +1,31 @@
-# Custom User Profiles
+# Code Coach: ML-powered programming practice for Codeforces
 
-The scripts in this folder creates individualized user profiles similar to those found [here](http://codeforces.com/blog/entry/46304). In this bare bones version, plots are made in R and aggregated in a HTML page. An example report can be seen by clicking on report.html in the current directory.
+This repository hosts a collection of scripts used for generating the model behind [Code Coach](codecoach.fun), my project at Insight Data Science. This project uses an ensemble regressor trained on 20 million codeforces submissions to predict future rating changes based on past user behavior, and recommends problems on Codeforces for users to solve. Problem ratings (difficulties) were previously calculated [here](https://github.com/yjiao/codeforces-api).
 
-
-## Requirements
-- R (scripts were written under version 3.2.4).
-- The R graphics package, ggplot2 
-- Python 2.7
-
-## Installation
-To copy files from this repository into a directory of your choice, run the following command. This will create a folder named `codeforces-api` in the current directory. Scripts for visualizing a user's statistics are in the `ui` folder.
-
-```
-git clone https://github.com/yjiao/codeforces-api
-```
-
-
-R can be downloaded [here](https://cran.r-project.org/). To install ggplot2 in R, type `R` in terminal to open the commandline interface for R, and enter the following:
-
-```
-install.packages('ggplot2')
-```
-
-
-## Usage
-
-Generate your report:
-
-```
-cd path-to-folder/codeforces-api/ui
-chmod +x createReport.sh
-./createReport.sh --handle=yourCodeforcesHandle
-```
-`path-to-folder` is the path to the folder you ran the `git clone` command in. `yourCodeforcesHandle` is the handle you use on codeforces.
-
-View report:
-
-```
-open report.html
-```
-
-This will automatically update problem and user data, if new problems have been published on codeforces between runs. Note calculating problem ratings can be a bit slow depending on the number of contests elapsed between runs--this is limited by the speed of codeforces api. Usually tens of competitions will run in a few minutes.
-
-## Example Output
-
-![](https://github.com/yjiao/codeforces-api/blob/master/ui/img_userProgress.png?raw=true =600x)
+While the code for training the ensemble regressors is desposited here, csv files and SQL databases were not uploaded due to size constraints. Additionally, while the data used for this project is publically available through the codeforces API, I wish to respect the privacy of codeforces users and not upload everyone's submission histories onto github.
 
 
 ![](https://github.com/yjiao/codeforces-api/blob/master/ui/img_histogram.png?raw=true =600x)
 
-![](https://github.com/yjiao/codeforces-api/blob/master/ui/img_langTrend.png?raw=true =600x)
 
-![](https://github.com/yjiao/codeforces-api/blob/master/ui/img_tags.png?raw=true =600x)
+## Requirements
+Note that packages marked as "not in production" means that while these models were used during the project, they are not present in the final codecoach.fun website. for variosu reasons.
 
-Script output (note warnings in ggplot are normal):
-```
-=================================================================
-Creating report for yj12, update = true...
-0. Updating data required for creating plots...
-   ------------------------------------
-   Updating problem ratings file: problem_ratings.csv
-   Problem ratings file up to date.
-   ------------------------------------
-   Updating problem data file: problem_data.csv
-   Problem ratings file up to date.
-   ------------------------------------
-   Getting all user problem submission information for: yj12
-   ------------------------------------
-   Getting user rating history for: yj12
-1. Checking that all required csv files exist...
-   problem_data.csv found
-   problem_ratings.csv found
-   user_activity.csv found
-   user_rating.csv found
-2. Creating plots...
-There were 50 or more warnings (use warnings() to see the first 50)
-Warning messages:
-1: In max(df$problemRating) :
-  no non-missing arguments to max; returning -Inf
-2: In max(df$problemRating) :
-  no non-missing arguments to max; returning -Inf
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-Profile completed. Please open report.html to view your profile.
-
-```
-
+- Python 2.7
+- PostgreSQL 9.6.3
+- Python packages:
+	- numpy
+	- scipy
+	- pandas
+	- sklearn
+	- XGBoost
+	- Flask
+	- Jupyter (for running notebooks)
+	- (not in production) Keras
+	- (not in production) Tensorflow
+	- (not in production) Statsmodels
 
 
 
 ## History
-2016 08 18: barebones version uploaded.
+2017 06 25 Initial public commit
