@@ -1,7 +1,0 @@
-*.png
-*.csv
-*.txt
-*.tsv
-*.pyc
-*.pickle
-.ipynb_checkpoints/*
