@@ -9,7 +9,7 @@ While the code for training the ensemble regressors is desposited here, csv file
 
 
 ## Requirements
-Note that packages marked as "not in production" means that while these models were used during the project, they are not present in the final codecoach.fun website. for variosu reasons.
+Note that packages marked as "not in production" means that while these models were used during the project, they are not present in the final codecoach.fun website.
 
 - Python 2.7
 - PostgreSQL 9.6.3
@@ -24,6 +24,7 @@ Note that packages marked as "not in production" means that while these models w
 	- (not in production) Keras
 	- (not in production) Tensorflow
 	- (not in production) Statsmodels
+	- (not in production) eli5
 
 
 ## Usage
