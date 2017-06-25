@@ -132,37 +132,3 @@ def get_data_for_ensemble():
             X.drop(d, inplace=True, axis=1)
 
     return X, Y
-
-def drafts():
-    # --------------------------------------
-    # Clip values that are arbitrarily large
-    X['max_timediff'] = np.clip(X['max_timediff'], 0, 365)
-    X['mean_timediff'] = np.clip(X['mean_timediff'], 0, 365)
-
-    X.fillna(value=0, inplace=True)
-    X['yval'] = Y
-
-    # --------------------------------------
-    # introduce nonlinear functions
-    for c in X.columns:
-        if "yval" not in c:
-            colname = "exp_" + c
-            coeff = max(X[c])
-            X[colname] = np.exp(X[c] / coeff)
-
-    for c in X.columns:
-        if "exp" not in c and "yval" not in c:
-            colname = "tanh_" + c
-            X[colname] = np.tanh(X[c])
-        
-    for c in X.columns:
-        if "exp" not in c and "yval" not in c and "tanh" not in c:
-            colname = "inv_" + c
-            X[colname] = X[c]
-            X.loc[X[colname] == 0, colname] = 1
-            X[colname] = 1.0 / X[colname]
-            
-    X['bias'] = 1
-
-    q, qbins = pd.qcut(X.smoothed_3months, 20, retbins=True)
-    X['q'] = q
