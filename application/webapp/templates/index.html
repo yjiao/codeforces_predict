@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{{title}}</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="../static/css/freelancer.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../static/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body id="page-top" class="index">
+<div id="skipnav"><a href="#maincontent">Skip to main content</a></div>
+
+    <!-- Navigation -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top navbar-custom">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="#page-top">Code Coach</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#about">About</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#details">Details</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#try">Try it out</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="#author">Author</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+
+    <!-- Header -->
+    <header>
+        <div class="container" id="maincontent" tabindex="-1">
+            <div class="row" style="padding-top: -5cm;">
+                <div class="col-lg-12">
+                    <img class="img-responsive" src="../static/img/logo_img.png" alt="" width="25%">
+                    <div class="intro-text">
+                        <h1 class="name">Code Coach</h1>
+                        <span class="skills">ML-powered programming practice</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Portfolio Grid Section -->
+    <section id="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>About</h2>
+                    <hr class="star-primary">
+                </div>
+            </div>
+
+            <div class="row">
+              <div class="col-lg-8 col-lg-offset-2">
+              <h3>What is Code Coach?</h3>
+              <p>Whether you need to master algorithms for school, interviews, or just for fun, it is a journey that requires
+              substantial practice.
+
+              <p>This project was inspired by the difficulty of finding good practice problems that suited
+              users both in difficulty and topics. Code Coach predicts a user's growth trajectory based on past behavior,
+              and recommends optimal practice problems to accelerate improvement.
+
+<!--              
+              <p> As students improve, practicing similar questions start to
+              feel boring and repetitive. Questions that are too difficult to
+              solve can frustrate and discourage students. Suitability of
+              problem topics vary widely as students improve.
+-->
+
+              <h3>What is competitive programming?</h3>
+              <p>Users from all over the world convene online to solve algorithms problems during programming contests.
+              Competitive programming platforms
+              serve as online judges that determine the correctness of user's solutions. At the end of each contest, users
+              are assigned ratings as a measurement of their skill with respect
+              to every other user.
+
+              <p>These platforms measure users' programming skills over time, and keep track of user actions such
+              as submitting correct or incorrect solutions to problems. Code Coach is currently built on top of data
+              from Codeforces, one of the oldest and largest competitive programming communities. (If you are a member of 
+              Codeforces, you may remember one of my <a href=http://codeforces.com/blog/chenmark>earlier blog posts</a>,
+              written jointly with chenmark.)
+            </div>
+          </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="success" id="details">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>Details</h2>
+                    <hr class="star-light">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                  <p><br></p>
+                  <img class="img-responsive" src="../static/img/recs.png" alt="" width="100%">
+                  <p><br></p>
+                  <p>This demo version of code coach is powered by a gradient boosted regressor, trained on 20 million Codeforces user submission
+                  entries, 1 million user rating changes, and 4,000 problem ratings and tags from 2011 to 2017. The final dataset
+                  consisted of around 100 features corresponding to around 800,000 next user rating change. Training and test sets
+                  were split in a stratified fashion based on user rating and the total number of problem solved, to obtain similar
+                  distributions of user types.
+
+                  <p>Information was retrieved from the <a href=http://codeforces.com/api/help><font color='white'>Codeforces API</font></a>.
+                  Feature extraction and hyperparameter gridsearch with 3-fold cross-validation
+                  was performed in parallel on an 8-core instance of Google Compute Engine.
+                  Training was performed using <a href=https://github.com/dmlc/xgboost><font color='white'>XGBoost</font></a>.
+
+                  <p>While this gradient boosted regressor yielded a r<sup>2</sup> value of 0.41 on the test set, the best fit was provided
+                  by a random forest regressor, with a r<sup>2</sup> value of 0.53 on the same test set. The random forest regressor was trained with 
+                  <a href=http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html>
+                    <font color='white'>Scikitlearn's gridsearchCV</font></a>, yielding a best estimator of 100 trees. However, this model
+                  occupies 11 gigabytes and cannot be cost-effectively hosted on Amazon Web Services. Thus, the lighter (and faster) 
+                  gradient-boosted regressor is used here instead.
+                  
+                  <br>
+                </div>
+              </div>
+            <div class="row" style="text-align: center">
+                    <a href="#portfolioModal4" class="portfolio-link" data-toggle="modal">
+                      <div class="btn btn-lg btn-default btn-outline">Even more details</div>
+                    </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="try">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>Try it out</h2>
+                    <hr class="star-primary">
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-lg-8 col-lg-offset-2">
+                    <p>Enter your codeforces handle below to view your next predicted rating change and practice problem recommendations.
+                    Code Coach also provides a dashboard of your practice history and statistics. </p>
+
+                    <div class = "container">
+
+                      <form  action="/output" method="GET">
+                        <div class="form-group">
+                          <label for="handle"><p>Codeforces handle:</label>
+                          <input type="text" id="handle" name='handle' placeholder="Limak the bear">  &nbsp; &nbsp; 
+                          <button type="submit" class="btn btn-lg btn-primary">Predict my score</button>
+
+                        </div>
+                      </form>
+                    </div>
+
+                      <form  action="/output" method="GET">
+                        <div class="form-group text-center">
+                          <p> If you don't have a Codeforces handle, you can also view the profile for a random user.
+                          <p><input type="submit" name="submit" value="view a random handle" class="btn btn-lg btn-primary">
+                        </div>
+                      </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <section id="author">
+    <footer class="text-center">
+        <div class="footer-above">
+            <div class="container">
+                <div class="row">
+                    <div class="footer-col text-center">
+                    <h2>Author</h2>
+                    <hr class="star-light">
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 col-lg-offset-2">
+                      <p> Y. Joy Jiao received her PhD in Systems Biology from Harvard University and BS in Chemical Engineering from MIT.
+                      <p> She enjoys occasional programming competitions and data science projects.
+                    </div>
+                </div>
+                      <!--
+                        <h3>Location</h3>
+                        <p>3481 Melrose Place
+                            <br>Beverly Hills, CA 90210</p>
+                    </div>
+                    <div class="footer-col col-md-4">
+                        <h3>Around the Web</h3>
+                        <ul class="list-inline">
+                            <li>
+                                <a href="#" class="btn-social btn-outline"><span class="sr-only">Facebook</span><i class="fa fa-fw fa-facebook"></i></a>
+                            </li>
+                            <li>
+                                <a href="#" class="btn-social btn-outline"><span class="sr-only">Google Plus</span><i class="fa fa-fw fa-google-plus"></i></a>
+                            </li>
+                            <li>
+                                <a href="#" class="btn-social btn-outline"><span class="sr-only">Twitter</span><i class="fa fa-fw fa-twitter"></i></a>
+                            </li>
+                            <li>
+                                <a href="#" class="btn-social btn-outline"><span class="sr-only">Linked In</span><i class="fa fa-fw fa-linkedin"></i></a>
+                            </li>
+                            <li>
+                                <a href="#" class="btn-social btn-outline"><span class="sr-only">Dribble</span><i class="fa fa-fw fa-dribbble"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="footer-col col-md-4">
+                        <h3>About Freelancer</h3>
+                        <p>Freelance is a free to use, open source Bootstrap theme created by <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+                    </div>
+                    -->
+            </div>
+        </div>
+        <div class="footer-below">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        Copyright &copy; Code Coach 2017
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </section>
+
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-top page-scroll hidden-sm hidden-xs hidden-lg hidden-md">
+        <a class="btn btn-primary" href="#page-top">
+            <i class="fa fa-chevron-up"></i>
+        </a>
+    </div>
+
+    <div class="portfolio-modal modal fade" id="portfolioModal4" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="close-modal" data-dismiss="modal">
+                <div class="lr">
+                    <div class="rl">
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="modal-body">
+                            <h2>Model details</h2>
+                            <hr class="star-primary">
+
+                            <div class="col-lg-5 col-lg-offset-1">
+                              <h3>Feature engineering</h3>
+                              <p>Features used in this model primarily capture how hard a user worked, and how much they challenged themselves.
+
+                              <p>The number of problems solved over the last month is a highly important feature in the final model.
+
+                              <p>Not all solves are equal. Typically, the larger the difference between a user's rating and a problem's rating,
+                              the more the user's score is projected to increase.
+                              
+                              <p>The user's current rating, as well as averaged rating over the last several months are also highly predictive of next
+                              rating changes. However, since the past is outside of the user's control, these features are used for regression
+                              but not for recommendation.
+
+                              <p>Recommendations for each user are made by iterating over features within the user's control (such as the number
+                              of problems solved and the types of problems), perturbing one feature at a time, and querying whether the model
+                              will predict a more favorable rating change. Behaviors that result in better rating changes are then recommended
+                              to the user.
+                            </div>
+
+                            <div class="col-lg-5">
+                              <h3>Piecewise Linear regression</h3>
+                              <p> The project initially started with a simple linear model, which, after extensive feature engineering, could
+                              capture r<sup>2</sup> of around 0.2 on smoothed user rating data. A piecewise linear regression based on 20 separate
+                              bins of users yielded r<sup>2</sup> values from 0.17 to 0.45, with highs mostly in lower-rated users, and poor
+                              performance on medium- to highly-rated users.
+
+                              <h3>Neural Networks</h3>
+                              <p>Due to the highly nonlinear mapping of features to user rating changes, both a feed-forward neural network
+                              and a recurrent neural network were considered. A 3-layer densely connected neural network with 50 neurons each
+                              in the hidden layers produced a r<sup>2</sup> value of 0.2, on par with linear regression. A recurrent neural network
+                              with GRUs ("simplified" LSTM) was attractive due to its ability to handle time series of different lengths
+                              and the occurence of many event types. Unfortunately, this network could not be trained and tuned in the time frame
+                              of this project.
+                            </div>
+
+                        </div>
+                      </div>
+                    </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                          <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="../static/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script type="text/javascript" src="../static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="../static/js/jqBootstrapValidation.js"></script>
+    <script src="../static/js/contact_me.js"></script>
+
+    <!-- Theme JavaScript -->
+    <script src="../static/js/freelancer.min.js"></script>
+
+</body>
+
+</html>
