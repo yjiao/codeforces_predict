@@ -29,20 +29,20 @@ Note that packages marked as "not in production" means that while these models w
 ## Usage
 Sample output from the codecoach.fun website is provided below.
 
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/02a_search.png?raw=true =600x)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/02a_search.png)
 
 The landing page for a random user (handle erased) is shown here, with a next predicted rating change.
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/02b_ratingchange.png?raw=true =600x)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/02b_ratingchange.png)
 
 Codecoach provides dashboards for the user to monitor practice progress.
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/03_rating_history.png?raw=true =600x)
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/04_practice_v_contest.png?raw=true =600x)
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/05_tags.png?raw=true =600x)
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/06_compare.png?raw=true =600x)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/03_rating_history.png)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/04_practice_v_contest.png)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/05_tags.png)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/06_compare.png)
 
 Codecoach provides practice suggestions.
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/07_suggest.png?raw=true =600x)
-![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/08_suggest.png?raw=true =600x)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/07_suggest.png)
+![](https://github.com/yjiao/codeforces_predict/blob/master/screenshots/08_suggest.png)
 
 
 ## History
