@@ -11,3 +11,4 @@ frontend/*
 gspackage/*
 webapp/*
 webapp/*.py
+/.ipynb_checkpoints/*
