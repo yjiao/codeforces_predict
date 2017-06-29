@@ -27,6 +27,41 @@ Note that packages marked as "not in production" means that while these models w
 	- (not in production) eli5
 
 
+
+## Subfolder structure
+- **application**
+
+	This folder contains code for the Code Coach webapp. Note that for security reasons, this is the local version of the application and not the version on AWS (which connects to an Amazon RDS instance).
+
+- **data_pipeline**
+
+	This folder contains scripts used to call and parse data from the codeforces API. Code for scraping problem statements from both topcoder and codeforces (two different competitive programming platforms) were included as well, although this data was ultimately not used in the model.
+	
+	
+
+- **exploration_and_visualization**
+
+	Jupyter notebooks showing visualizations of the dataset as well as initial exploration of dataset properties.
+
+- **linear_regression**
+	
+	Code for piece-wise linear regression on smoothed user rating changes. Not used for the final webapp.
+
+
+- **neural_network**
+	
+	Code for using feed-forward and recurrent neural networks to fit smoothed user rating changes. Not used for the final webapp.
+
+
+- **ensemble**
+	
+	Code for random forest regressors and gradient-boosted regressors on unsmoothed user rating changes. The random forest regressor achieves the largest r^2 value of 0.53. However, a gradient-boosted regressor with a r^2 of 0.41 was deployed for the webapp due to its much ligher size and faster runtime (10Mb vs. 11 Gb, around 10x faster).
+
+- **screenshots**
+
+	Image files for this readme document.
+
+
 ## Usage
 Sample output from the codecoach.fun website is provided below.
 
