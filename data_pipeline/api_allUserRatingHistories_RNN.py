@@ -8,18 +8,6 @@ import time
 import sys
 from os.path import exists
 
-# Get user lists, ONLY RUN ONCE
-#url = 'http://codeforces.com/api/user.ratedList'
-#users = requests.get(url).json()['result']
-#
-#allHandles = []
-#for u in users:
-#    allHandles.append(u['handle'])
-#
-#with open('all_handles.txt', 'w') as f:
-#    for u in allHandles:
-#        f.write(u + '\n')
-
 print "reading handles..."
 with open('all_handles.txt') as f:
     hdl = f.readlines()

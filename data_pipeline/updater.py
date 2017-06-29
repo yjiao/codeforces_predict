@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 import argparse
 
-import api_functions_v2 as api
+import api_functions as api
 import elo as elo
 
 def readCL():
