@@ -20,11 +20,14 @@ Note that packages marked as "not in production" means that while these models w
 	- sklearn
 	- XGBoost
 	- Flask
+	- psycopg2
 	- Jupyter (for running notebooks)
 	- (not in production) Keras
 	- (not in production) Tensorflow
 	- (not in production) Statsmodels
 	- (not in production) eli5
+	- (not in production) requests
+
 
 
 
