@@ -6,9 +6,11 @@ This folder contains code for codeforces API calls, data parsing and cleaning, a
 - Python packages:
 	- numpy
 	- pandas
-	- XGBoost
-	- Flask
 	- psycopg2
+	- matplotlib
+	- seaborn
+	- sqlalchemy
+	- bs4
 	
 
 ## Files
